@@ -1,38 +1,34 @@
-package message.kafka.filter;
+package message.kafka.interceptor;
 
-import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import message.kafka.model.HeaderModel;
 import message.kafka.service.DataProducerService;
-import message.kafka.util.CachedBodyHttpServletRequest;
+import org.apache.kafka.common.header.Header;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
-@Order(1)
-public class ProducerFilter implements Filter {
+public class RequestInterceptor implements HandlerInterceptor {
 
-    private Logger logger = LogManager.getLogger("ProducerFilterLogger");
+    private Logger logger = LogManager.getLogger("ProducerInterceptorLogger");
 
     private final DataProducerService dataProducerService;
 
-    public ProducerFilter(DataProducerService dataProducerService) {
+    public RequestInterceptor(DataProducerService dataProducerService) {
         this.dataProducerService = dataProducerService;
     }
 
     @Override
-    public void doFilter(
-            ServletRequest request,
-            ServletResponse response,
-            FilterChain chain) {
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
 
-        HttpServletRequest req = (HttpServletRequest) request;
+        HttpServletRequest req = request;
 
         HeaderModel header = new HeaderModel(req.getRequestURI(),req.getMethod(),req.getUserPrincipal(),null);
 
