@@ -2,8 +2,9 @@ package message.kafka.filter;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
-import message.kafka.filter.util.CachedBodyHttpServletRequest;
+import message.kafka.model.HeaderModel;
 import message.kafka.service.DataProducerService;
+import message.kafka.util.CachedBodyHttpServletRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.core.annotation.Order;
@@ -29,23 +30,17 @@ public class ProducerFilter implements Filter {
     public void doFilter(
             ServletRequest request,
             ServletResponse response,
-            FilterChain chain) throws ServletException, IOException {
+            FilterChain chain) {
 
         HttpServletRequest req = (HttpServletRequest) request;
-        logger.info("Starting a transaction for req : {}", req.getRequestURI());
 
-        // Wrap the request to cache the body
-        CachedBodyHttpServletRequest cachedBodyRequest = new CachedBodyHttpServletRequest(req);
+        HeaderModel header = new HeaderModel(req.getRequestURI(),req.getMethod(),req.getUserPrincipal(),null);
 
-        // Reading the request body
-        String body = new String(cachedBodyRequest.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        logger.info("Sending the message to the DataProducerService");
 
-        // Sending the message to the DataProducerService
-        dataProducerService.sendMessage((Serializable) body);
+        dataProducerService.sendMessage((Serializable) header.toMap());
 
-        // Continue with the filter chain
-        chain.doFilter(cachedBodyRequest, response);
+        logger.info("Message sent");
 
-        logger.info("Committing a transaction for req : {}", req.getRequestURI());
     }
 }
