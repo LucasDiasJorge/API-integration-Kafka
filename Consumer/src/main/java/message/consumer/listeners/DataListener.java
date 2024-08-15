@@ -11,6 +11,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.function.Function;
 
 @Component
 public class DataListener {
@@ -18,26 +19,39 @@ public class DataListener {
     private final Logger logger = LogManager.getLogger("DataListenerLogger");
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @KafkaListener(groupId = "ProducerId", topics = {"json-topic", "another-topic"}, containerFactory = "kafkaContainerFactory")
-    public void listener(ConsumerRecord<String, Object> consumerRecord) {
-
-        Object value = consumerRecord.value();
-        HeaderModel header = null;
+    public HeaderModel mapToHeader(Object value) {
 
         if (value instanceof String) {
             try {
-                header = objectMapper.readValue((String) value, HeaderModel.class);
+                return objectMapper.readValue((String) value, HeaderModel.class);
             } catch (JsonProcessingException e) {
                 logger.error("Failed to deserialize JSON string to Form object", e);
             }
         } else if (value instanceof Map) {
-            header = objectMapper.convertValue(value, HeaderModel.class);
+            return objectMapper.convertValue(value, HeaderModel.class);
         } else {
             logger.error("Unexpected record value type: {}", value.getClass().getName());
         }
 
+        return null;
+
+    }
+
+    @KafkaListener(groupId = "ProducerId", topics = {"json-topic", "another-topic"}, containerFactory = "kafkaContainerFactory")
+    public void listener(ConsumerRecord<String, Object> consumerRecord) {
+
+        Object value = consumerRecord.value();
+        HeaderModel header = mapToHeader(value);
+
         if (header != null) {
             logger.info("Message treated is: {}", header.toMap().toString());
+        } else{
+            logger.info("Header is null");
         }
+
+        logger.info("Running integration cases");
+
+
+
     }
 }
