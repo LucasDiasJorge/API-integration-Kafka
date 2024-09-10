@@ -8,31 +8,31 @@ import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaAdmin;
 
 import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 public class KafkaAdminConfig {
 
-    public KafkaProperties properties;
+    private final KafkaProperties kafkaProperties;
 
-    // @Autorwired
-    public KafkaAdminConfig(KafkaProperties properties) {
-        this.properties = properties;
+    // Constructor Injection
+    public KafkaAdminConfig(KafkaProperties kafkaProperties) {
+        this.kafkaProperties = kafkaProperties;
     }
 
     // Get configs from application.yml
     @Bean
-    public KafkaAdmin kafkaAdmin(){
-        var configs = new HashMap<String, Object>();
-        configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG,properties.getBootstrapServers());
+    public KafkaAdmin kafkaAdmin() {
+        Map<String, Object> configs = new HashMap<>();
+        configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
         return new KafkaAdmin(configs);
     }
 
     // Creating new topics automatically
     @Bean
-    public KafkaAdmin.NewTopics topics(){
+    public KafkaAdmin.NewTopics topics() {
         return new KafkaAdmin.NewTopics(
-                TopicBuilder.name("json-topic").partitions(1).build()
+                TopicBuilder.name("CC0000-DEV").partitions(1).build()
         );
     }
-
 }
