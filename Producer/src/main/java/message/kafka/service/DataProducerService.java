@@ -22,10 +22,10 @@ public class DataProducerService {
     // Implementation of send message to topicCreated
     public void sendMessage(Serializable message) {
         // Kafka callback Logging (https://www.baeldung.com/spring-kafka)
-        CompletableFuture<SendResult<String, Serializable>> future = kafkaTemplate.send("json-topic",message);
+        CompletableFuture<SendResult<String, Serializable>> future = kafkaTemplate.send("CC0000-DEV",message);
         future.whenComplete((result, ex) -> {
             if (ex == null) {
-                logger.info("Sent message: \n{} \n \tData Utils: \n\tWith offset: {} \n\tTo topic: {}", message, result.getRecordMetadata().offset(), result.getRecordMetadata().topic());
+                logger.info("Sent message: \n{} \n \tData Utils: \n\tWith offset: {} \n\tTo topic: {} \n\tTo server: {}", message, result.getRecordMetadata().offset(), result.getRecordMetadata().topic());
             } else {
                 logger.error(ex.getMessage(), ex);
             }
